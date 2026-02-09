@@ -97,8 +97,9 @@ Examples:
 - `0x52` = `TYPE_CMD | GROUP_ALL | CMD_READ` (broadcast read)
 
 #### Length Field (1 byte)
-- For **CMD packets:** `data_len + 3` (data + CRC5)
-- For **JOB packets:** `data_len + 4` (data + CRC16)
+- For **CMD packets:** `data_len + 3` (includes: data + length field + header + CRC5)
+- For **JOB packets:** `data_len + 4` (includes: data + length field + header + CRC16)
+- Note: The length value represents the total number of bytes from the length field onwards
 
 #### CRC/Checksum
 - **CMD Packets:** Use **CRC5** (5-bit CRC, polynomial: x⁵ + x² + 1, MSB-first)
@@ -176,14 +177,14 @@ static void _send_BM1370(uint8_t header, const uint8_t * data, uint8_t data_len,
 ```c
 typedef struct __attribute__((__packed__))
 {
-    uint16_t preamble;                // 0-1: 0xAA55 (note: reversed)
+    uint16_t preamble;                // Bytes 0-1: 0xAA55 (note: reversed)
     union {
-        bm1370_asic_result_job_t job; // 2-9: Nonce response
-        bm1370_asic_result_cmd_t cmd; // 2-9: Register read response
+        bm1370_asic_result_job_t job; // Bytes 2-9: Nonce response
+        bm1370_asic_result_cmd_t cmd; // Bytes 2-9: Register read response
     };
-    uint8_t crc             : 5;      // 10:0-5: CRC bits
-    uint8_t                 : 2;      // 10:6-7: Reserved
-    uint8_t is_job_response : 1;      // 10:8: Job/Command flag
+    uint8_t crc             : 5;      // Byte 10, bits 0-4: CRC bits
+    uint8_t                 : 2;      // Byte 10, bits 5-6: Reserved
+    uint8_t is_job_response : 1;      // Byte 10, bit 7: Job/Command flag
 } bm1370_asic_result_t;
 ```
 
